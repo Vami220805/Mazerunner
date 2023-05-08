@@ -2,26 +2,28 @@ from pygame.locals import *
 import pygame
  
 class Player:
-    x = 44
-    y = 44
-    speed = 1
- 
+    x = 1
+    y = 1
+    speed = 0.3
+    def __init__(self):
+        self.maze = Maze()
+
     def moveRight(self):
-        self.x = self.x + self.speed
+        self.x = self.x + 1
  
     def moveLeft(self):
-        self.x = self.x - self.speed
+        self.x = self.x - 1
  
     def moveUp(self):
-        self.y = self.y - self.speed
+        self.y = self.y - self.M
  
     def moveDown(self):
-        self.y = self.y + self.speed
+        self.y = self.y + self.M
  
 class Maze:
     def __init__(self):
        self.M = 10
-       self.N = 8
+       self.N = 9
        self.maze = [1,1,1,1,1,1,1,1,1,1,
                     1,0,1,0,0,0,0,1,0,1,
                     1,0,0,0,1,1,1,0,1,1,
@@ -30,7 +32,7 @@ class Maze:
                     1,0,0,0,0,0,0,1,0,1,
                     1,1,1,1,1,1,1,1,0,1,
                     1,0,0,0,0,0,0,1,0,1,
-                    1,1,1,1,1,1,1,1,1,1,]
+                    1,1,1,1,1,1,1,1,0,1]
     #    self.maze = [ 1,1,1,1,1,1,1,1,1,1,
     #                  1,0,0,0,0,0,0,0,0,1,
     #                  1,0,0,0,0,0,0,0,0,1,
@@ -45,7 +47,7 @@ class Maze:
        by = 0
        for i in range(0,self.M*self.N):
            if self.maze[ bx + (by*self.M) ] == 1:
-               display_surf.blit(image_surf,( bx * 44 , by * 44))
+               display_surf.blit(image_surf,( bx * 29 , by * 30))
       
            bx = bx + 1
            if bx > self.M-1:
@@ -71,7 +73,7 @@ class App:
         pygame.init()
         self._display_surf = pygame.display.set_mode((self.windowWidth,self.windowHeight), pygame.HWSURFACE)
         
-        pygame.display.set_caption('Pygame pythonspot.com example')
+        pygame.display.set_caption('MAZERUNNER')
         self._running = True
         self._image_surf = pygame.image.load("player.png").convert()
         self._block_surf = pygame.image.load("block.png").convert()
@@ -85,7 +87,9 @@ class App:
     
     def on_render(self):
         self._display_surf.fill((0,0,0))
-        self._display_surf.blit(self._image_surf,(self.player.x,self.player.y))
+        self._display_surf.blit(self._image_surf,(self.player.x,self.player.y))#dit movet de player
+        self.maze.maze
+        print(self._display_surf)
         self.maze.draw(self._display_surf, self._block_surf)
         pygame.display.flip()
  
