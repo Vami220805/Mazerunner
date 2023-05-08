@@ -131,8 +131,8 @@ class App:
         
         pygame.display.set_caption('MAZERUNNER')
         self._running = True
-        self._image_surf = pygame.image.load("player.png").convert()
-        self._block_surf = pygame.image.load("block.png").convert()
+        self._image_surf = pygame.image.load("images/player.png").convert()
+        self._block_surf = pygame.image.load("images/block.png").convert()
  
     def on_event(self, event):
         if event.type == QUIT:
