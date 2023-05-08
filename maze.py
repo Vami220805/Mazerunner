@@ -1,24 +1,49 @@
 from pygame.locals import *
 import pygame
+import time
  
 class Player:
-    x = 1
-    y = 1
-    speed = 0.3
     def __init__(self):
         self.maze = Maze()
+        self.pos= 12
+        self.move_counter =0
 
     def moveRight(self):
-        self.x = self.x + 1
+        self.old_pos = self.pos
+        self.move_counter += 1
+        self.pos = self.pos + 1
+        
  
     def moveLeft(self):
-        self.x = self.x - 1
+        self.old_pos = self.pos
+        self.move_counter += 1
+        self.x = self.pos - 1
  
     def moveUp(self):
-        self.y = self.y - self.M
+        self.old_pos = self.pos
+        self.move_counter += 1
+        self.y = self.pos - 10
  
     def moveDown(self):
-        self.y = self.y + self.M
+        self.old_pos = self.pos
+        self.move_counter += 1
+        self.y = self.pos + 10
+
+    def changeMaze(self):
+        self.maze.maze[self.pos] =2
+        if self.move_counter >0:
+            self.maze.maze[self.old_pos] = 0
+        print(self.maze.maze)
+    def draw_player(self,display_surf,image_surf):
+       bx = 0
+       by = 0
+       for i in range(0,self.maze.M*self.maze.N):
+            if self.maze.maze[ bx + (by*self.maze.M) ] == 2:
+               display_surf.blit(image_surf,( bx * 29 , by * 30))
+            bx = bx + 1
+            if bx > self.maze.M-1:
+               bx = 0 
+               by = by + 1
  
 class Maze:
     def __init__(self):
@@ -87,9 +112,9 @@ class App:
     
     def on_render(self):
         self._display_surf.fill((0,0,0))
-        self._display_surf.blit(self._image_surf,(self.player.x,self.player.y))#dit movet de player
-        self.maze.maze
-        print(self._display_surf)
+        # self._display_surf.blit(self._image_surf,(self.player.x,self.player.y))#dit movet de player
+        self.player.changeMaze()
+        self.player.draw_player(self._display_surf, self._image_surf)
         self.maze.draw(self._display_surf, self._block_surf)
         pygame.display.flip()
  
@@ -121,6 +146,7 @@ class App:
  
             self.on_loop()
             self.on_render()
+            time.sleep(0.1)
         self.on_cleanup()
  
 if __name__ == "__main__" :
