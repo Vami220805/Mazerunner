@@ -177,13 +177,13 @@ class App:
             if (keys[K_RIGHT] or keys[K_d]):
                 self.player.moveRight()
  
-            if (keys[K_LEFT]or keys[K_a]):
+            elif (keys[K_LEFT]or keys[K_a]):
                 self.player.moveLeft()
  
-            if (keys[K_UP]or keys[K_w]):
+            elif (keys[K_UP]or keys[K_w]):
                 self.player.moveUp()
  
-            if (keys[K_DOWN]or keys[K_s]):
+            elif (keys[K_DOWN]or keys[K_s]):
                 self.player.moveDown()
  
             if (keys[K_ESCAPE]):
