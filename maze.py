@@ -103,6 +103,7 @@ class App:
         self._display_surf = None
         self._image_surf = None
         self._block_surf = None
+        self.fullscreen = False
         self.player = Player()
         self.maze = Maze()
 
@@ -141,10 +142,31 @@ class App:
         self._display_surf.blit(previous_level, ( 50, previous_level.get_height()/2))
         pygame.display.update()
 
+    def set_display(self):
+        global game_display, scale_surface, draw_surface
+        scale_surface = pygame.Surface(self.get_resolution())
+        if self.fullscreen:
+            draw_surface = pygame.Surface(self._max_display)
+            gameDisplay = pygame.display.set_mode(self._max_display, pygame.FULLSCREEN)
+        else:
+            draw_surface = pygame.Surface((self.windowWidth,self.windowHeight))
+            gameDisplay = pygame.display.set_mode((self.windowWidth,self.windowHeight))
+        return
+    
+    
+    def get_resolution(self):
+        if self.fullscreen:
+            return self._max_display[0] * self.scale, self._max_display[1] * self.scale
+        else:
+            return self.windowWidth * self.scale, self.windowHeight * self.scale
+
     def on_init(self):
         pygame.init()
+        # self._draw_surface = pygame.Surface((self.windowWidth,self.windowHeight))
         self._display_surf = pygame.display.set_mode((self.windowWidth,self.windowHeight), pygame.HWSURFACE)
-        
+        self._max_display = pygame.display.Info().current_w, pygame.display.Info().current_h
+        self.scale = 1
+        self.fullscreen = False
         pygame.display.set_caption('MAZERUNNER')
         self._running = True
         self._image_surf = pygame.image.load("images/player.png").convert()
@@ -212,6 +234,10 @@ class App:
  
             if (keys[K_ESCAPE]):
                 self._running = False
+            
+            if (keys[K_f]):
+                self.fullscreen = not self.fullscreen
+                self.set_display()
  
             self.on_loop()
             self.on_render()
