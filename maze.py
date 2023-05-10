@@ -6,6 +6,7 @@ class Player:
     def __init__(self):
         self.maze = Maze()
         self.game_over = False
+        self.game_Won = False
         self.pos= self.maze.start
         self.move_counter =0
 
@@ -39,7 +40,7 @@ class Player:
             self.maze.maze[self.pos] =2
             print(self.maze.maze)
         except IndexError:
-            self.game_over = True
+            self.game_Won = True
             self.maze.maze[self.old_pos] = 0
             self.pos = self.maze.start
     
@@ -125,6 +126,21 @@ class App:
         self._display_surf.blit(quit_button, (self.windowWidth/2 - quit_button.get_width()/2, self.windowHeight/2 + quit_button.get_height()/2))
         pygame.display.update()
 
+    def draw_game_Won_screen(self):
+        self._display_surf.fill((0, 0, 0))
+        font = pygame.font.SysFont('arial', 40)
+        title = font.render('Game Won', True, (255, 255, 255))
+        restart_button = font.render('R - Restart', True, (255, 255, 255))
+        quit_button = font.render('ESC - Quit', True, (255, 255, 255))
+        next_level = font.render('> - next', True, (255, 255, 255))
+        previous_level = font.render('< - previous', True, (255, 255, 255))
+        self._display_surf.blit(title, (self.windowWidth/2 - title.get_width()/2, self.windowHeight/2 - title.get_height()/3))
+        self._display_surf.blit(restart_button, (self.windowWidth/2 - restart_button.get_width()/2, self.windowHeight/1.9 + restart_button.get_height()))
+        self._display_surf.blit(quit_button, (self.windowWidth/2 - quit_button.get_width()/2, self.windowHeight/2 + quit_button.get_height()/2))
+        self._display_surf.blit(next_level, (self.windowWidth/2 - next_level.get_width()/2, self.windowHeight * 0 + next_level.get_height()/2))
+        self._display_surf.blit(previous_level, (self.windowWidth/2 - previous_level.get_width()/2, self.windowHeight* 0 + previous_level.get_height()/2))
+        pygame.display.update()
+
     def on_init(self):
         pygame.init()
         self._display_surf = pygame.display.set_mode((self.windowWidth,self.windowHeight), pygame.HWSURFACE)
@@ -162,6 +178,14 @@ class App:
             if keys[pygame.K_r]:
                 self.game_state = "start_menu"
                 self.player.game_over = False
+        
+        if self.player.game_Won == True:
+            self.game_state = "game_Won"
+            self.draw_game_Won_screen()
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_r]:
+                self.game_state = "start_menu"
+                self.player.game_Won = False
  
     def on_cleanup(self):
         pygame.quit()
