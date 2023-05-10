@@ -138,7 +138,7 @@ class App:
         self._display_surf.blit(restart_button, (self.windowWidth/2 - restart_button.get_width()/2, self.windowHeight/1.9 + restart_button.get_height()))
         self._display_surf.blit(quit_button, (self.windowWidth/2 - quit_button.get_width()/2, self.windowHeight/2 + quit_button.get_height()/2))
         self._display_surf.blit(next_level, (self.windowWidth/2 - next_level.get_width()/2, self.windowHeight * 0 + next_level.get_height()/2))
-        self._display_surf.blit(previous_level, (self.windowWidth/2 - previous_level.get_width()/2, self.windowHeight* 0 + previous_level.get_height()/2))
+        self._display_surf.blit(previous_level, ( 50, previous_level.get_height()/2))
         pygame.display.update()
 
     def on_init(self):
