@@ -8,10 +8,10 @@ class Player:
         self.game_over = False
         self.game_Won = False
         self.pos= self.maze.start
+        self.old_pos = 0
         self.move_counter =0
         self.x_pos = 0
         self.y_pos = 0
-        self.rect = pygame.Rect((50,50),(16,16)) # Create Player Rect
 
     def moveRight(self):
         self.old_pos = self.pos
@@ -41,15 +41,15 @@ class Player:
                 self.maze.maze[self.old_pos] = 0
 
             self.maze.maze[self.pos] = 2
-            print(self.pos)
         except IndexError:
-            self.game_Won = True
             self.maze.maze[self.old_pos] = 0
             self.pos = self.maze.start
+            self.game_Won = True
     
     def draw_player(self,display_surf,image_surf):
        bx = 0
        by = 0
+       color = (0, 0, 0)
        for i in range(0,self.maze.M*self.maze.N):
             if self.maze.maze[ bx + (by*self.maze.M) ] == 2:
                 display_surf.blit(image_surf,( bx * 29 , by * 30))
@@ -177,7 +177,8 @@ class App:
         self._screen = pygame.display.set_mode((self.windowWidth/2,self.windowHeight/2))
         self.world = pygame.Surface((self.windowWidth,self.windowHeight)) # Create Map Surface
         self.world.fill((0, 0, 0)) # Fill Map Surface Black
-        self._display_surf = pygame.display.set_mode((self.windowWidth,self.windowHeight))
+        # self._display_surf = pygame.display.set_mode((self.windowWidth,self.windowHeight))
+        self._display_surf = pygame.display.set_mode((self.windowWidth,self.windowHeight), pygame.HWSURFACE)
         self._max_display = pygame.display.Info().current_w, pygame.display.Info().current_h
         self.scale = 1
         self.fullscreen = False
@@ -199,12 +200,12 @@ class App:
             self.player.changeMaze()
             # self._display_surf = pygame.Surface((int(self.windowWidth / self.zoom), int(self.windowHeight / self.zoom)))
             # self._display_surf = pygame.display.set_mode((int(self.windowWidth / self.zoom), int(self.windowHeight / self.zoom)))         
-            self._display_surf.fill((0,0,0))
+            self.world.fill((0, 0, 0)) # Fill Map Surface Black
+            self._display_surf.fill((0, 0, 0)) # Fill Map Surface Black
             self.maze.draw(self.world, self._block_surf)
             self.player.draw_player(self.world, self._image_surf)
-            # print(self.player.x_pos, self.player.y_pos, self.player.world_x_pos, self.player.world_y_pos)      
-            print(self.player.pos)
-            self._display_surf.blit(self.world,(self.player.world_x_pos + self.windowWidth / 2 ,self.player.world_y_pos+ self.windowHeight / 3))
+            # print(self.player.x_pos, self.player.y_pos, self.player.world_x_pos, self.player.world_y_pos)
+            self._display_surf.blit(self.world,(self.player.world_x_pos + self.windowWidth / 3 ,self.player.world_y_pos+ self.windowHeight / 3))
             self._screen.blit(pygame.transform.scale(self._display_surf,(self.windowWidth,self.windowHeight)),(0,0))
             pygame.display.flip()
 
@@ -234,18 +235,19 @@ class App:
         while( self._running ):
             pygame.event.pump()
             keys = pygame.key.get_pressed()
-            
-            if (keys[K_RIGHT] or keys[K_d]):
-                self.player.moveRight()
- 
-            elif (keys[K_LEFT]or keys[K_a]):
-                self.player.moveLeft()
- 
-            elif (keys[K_UP]or keys[K_w]):
-                self.player.moveUp()
- 
-            elif (keys[K_DOWN]or keys[K_s]):
-                self.player.moveDown()
+
+            if self.game_state == "game":
+                if (keys[K_RIGHT] or keys[K_d]):
+                    self.player.moveRight()
+    
+                elif (keys[K_LEFT]or keys[K_a]):
+                    self.player.moveLeft()
+    
+                elif (keys[K_UP]or keys[K_w]):
+                    self.player.moveUp()
+    
+                elif (keys[K_DOWN]or keys[K_s]):
+                    self.player.moveDown()
  
             if (keys[K_ESCAPE]):
                 self._running = False
