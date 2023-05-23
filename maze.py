@@ -82,14 +82,11 @@ class Data:
 
 
 class App:
- 
-    windowWidth = 800
-    windowHeight = 600
-    player = 0
-    game_state = "start_menu"
-    FPS =60
- 
     def __init__(self):
+        self.windowWidth = 800
+        self.windowHeight = 600
+        self.game_state = "start_menu"
+        self.FPS =60
         self._running = True
         self._display_surf = None
         self._screen = None
@@ -98,6 +95,56 @@ class App:
         self.fullscreen = False
         self.data = Data()
 
+    def on_init(self):
+        pygame.init()
+        pygame.mixer.init()
+        pygame.font.init()
+        self._screen = pygame.display.set_mode((self.windowWidth/2,self.windowHeight/2))
+        self.world = pygame.Surface((self.windowWidth,self.windowHeight)) # Create Map Surface
+        self.world.fill((0, 0, 0)) # Fill Map Surface Black
+        self._display_surf = pygame.display.set_mode((self.windowWidth,self.windowHeight), pygame.HWSURFACE)
+        self._max_display = pygame.display.Info().current_w, pygame.display.Info().current_h
+        self.scale = 3
+        self.fullscreen = False
+        self.clock = pygame.time.Clock()
+        pygame.display.set_caption('MAZERUNNER')
+        self._running = True
+        self._image_surf = pygame.image.load("images/player.png").convert()
+        self._image_surf.set_colorkey((0, 0, 0))
+        self._block_surf = pygame.image.load("images/block.png").convert()
+    
+    def on_render(self):
+        if self.game_state == "start_menu":
+            self.draw_start_menu()
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_SPACE]:
+                self.game_state = "game"
+
+        if self.game_state == "game":
+            self.data.changeMaze()
+            self.world.fill((0, 0, 0)) # Fill Map Surface Black
+            self._display_surf.fill((0, 0, 0)) # Fill Map Surface Black
+            self.data.draw(self.world, self._block_surf, self._image_surf)
+            self._display_surf.blit(self.world,(self.data.world_x_pos + self.windowWidth / 3 ,self.data.world_y_pos+ self.windowHeight / 3))
+            self._screen.blit(pygame.transform.scale(self._display_surf,(self.windowWidth,self.windowHeight)),(0,0))
+            pygame.display.flip()
+
+        if self.data.game_over == True:
+            self.game_state = "game_over"
+            self.draw_game_over_screen()
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_r]:
+                self.game_state = "start_menu"
+                self.data.game_over = False
+        
+        if self.data.game_Won == True:
+            self.game_state = "game_Won"
+            self.draw_game_Won_screen()
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_r]:
+                self.game_state = "start_menu"
+                self.data.game_Won = False
+    
     def draw_start_menu(self):
         self._display_surf.fill((0,0,0))
         font = pygame.font.SysFont('arial', 40)
@@ -149,56 +196,6 @@ class App:
             return self._max_display[0] * self.scale, self._max_display[1] * self.scale
         else:
             return self.windowWidth * self.scale, self.windowHeight * self.scale
-
-    def on_init(self):
-        pygame.init()
-        pygame.mixer.init()
-        pygame.font.init()
-        self._screen = pygame.display.set_mode((self.windowWidth/2,self.windowHeight/2))
-        self.world = pygame.Surface((self.windowWidth,self.windowHeight)) # Create Map Surface
-        self.world.fill((0, 0, 0)) # Fill Map Surface Black
-        self._display_surf = pygame.display.set_mode((self.windowWidth,self.windowHeight), pygame.HWSURFACE)
-        self._max_display = pygame.display.Info().current_w, pygame.display.Info().current_h
-        self.scale = 1
-        self.fullscreen = False
-        self.clock = pygame.time.Clock()
-        pygame.display.set_caption('MAZERUNNER')
-        self._running = True
-        self._image_surf = pygame.image.load("images/player.png").convert()
-        self._image_surf.set_colorkey((0, 0, 0))
-        self._block_surf = pygame.image.load("images/block.png").convert()
-    
-    def on_render(self):
-        if self.game_state == "start_menu":
-            self.draw_start_menu()
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_SPACE]:
-                self.game_state = "game"
-
-        if self.game_state == "game":
-            self.data.changeMaze()
-            self.world.fill((0, 0, 0)) # Fill Map Surface Black
-            self._display_surf.fill((0, 0, 0)) # Fill Map Surface Black
-            self.data.draw(self.world, self._block_surf, self._image_surf)
-            self._display_surf.blit(self.world,(self.data.world_x_pos + self.windowWidth / 3 ,self.data.world_y_pos+ self.windowHeight / 3))
-            self._screen.blit(pygame.transform.scale(self._display_surf,(self.windowWidth,self.windowHeight)),(0,0))
-            pygame.display.flip()
-
-        if self.data.game_over == True:
-            self.game_state = "game_over"
-            self.draw_game_over_screen()
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_r]:
-                self.game_state = "start_menu"
-                self.data.game_over = False
-        
-        if self.data.game_Won == True:
-            self.game_state = "game_Won"
-            self.draw_game_Won_screen()
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_r]:
-                self.game_state = "start_menu"
-                self.data.game_Won = False
  
     def on_cleanup(self):
         pygame.quit()
