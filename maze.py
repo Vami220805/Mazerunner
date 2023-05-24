@@ -2,110 +2,149 @@ from pygame.locals import *
 import pygame
 import time
  
-class Player:
+class Data:
     def __init__(self):
-        self.maze = Maze()
         self.game_over = False
         self.game_Won = False
-        self.pos= self.maze.start
+        self.start = 11
+        self.pos = self.start
+        self.old_pos = 0
         self.move_counter =0
+        self.M = 10
+        self.N = 9
+        self.maze = [1,1,1,1,1,1,1,1,1,1,
+                        1,0,1,0,0,0,0,1,0,1,
+                        1,0,0,0,1,1,1,0,1,1,
+                        1,0,1,0,0,0,0,0,0,1,
+                        1,0,1,1,1,1,1,1,0,1,
+                        1,0,0,0,0,0,0,1,0,1,
+                        1,1,1,1,1,1,0,1,0,1,
+                        1,0,0,0,0,0,0,1,0,1,
+                        1,1,1,1,1,1,1,1,0,1]
+        #    self.maze = [ 1,1,1,1,1,1,1,1,1,1,
+        #                  1,0,0,0,0,0,0,0,0,1,
+        #                  1,0,0,0,0,0,0,0,0,1,
+        #                  1,0,1,1,1,1,1,1,0,1,
+        #                  1,0,1,0,0,0,0,0,0,1,
+        #                  1,0,1,0,1,1,1,1,0,1,
+        #                  1,0,0,0,0,0,0,0,0,1,
+        #                  1,1,1,1,1,1,1,1,1,1,]
 
     def moveRight(self):
         self.old_pos = self.pos
         self.move_counter += 1
-        self.pos = self.pos + 1
+        self.pos += 1
         
     def moveLeft(self):
         self.old_pos = self.pos
         self.move_counter += 1
-        self.pos = self.pos - 1
+        self.pos -= 1
  
     def moveUp(self):
         self.old_pos = self.pos
         self.move_counter += 1
-        self.pos = self.pos - self.maze.M
+        self.pos -= self.M
  
     def moveDown(self):
         self.old_pos = self.pos
         self.move_counter += 1
-        self.pos = self.pos + self.maze.M
+        self.pos += self.M
 
     def changeMaze(self):
         try:
-            if self.maze.maze[self.pos] == 1:
+            if self.maze[self.pos] == 1:
                 self.pos = self.old_pos
             elif self.move_counter >0:
-                self.maze.maze[self.old_pos] = 0
-
-            self.maze.maze[self.pos] =2
-            print(self.maze.maze)
+                self.maze[self.old_pos] = 0
+            self.maze[self.pos] = 2
         except IndexError:
+            self.maze[self.old_pos] = 0
+            self.pos = self.start
             self.game_Won = True
-            self.maze.maze[self.old_pos] = 0
-            self.pos = self.maze.start
-    
-    def draw_player(self,display_surf,image_surf):
-       bx = 0
-       by = 0
-       for i in range(0,self.maze.M*self.maze.N):
-            if self.maze.maze[ bx + (by*self.maze.M) ] == 2:
-               display_surf.blit(image_surf,( bx * 29 , by * 30))
-            bx = bx + 1
-            if bx > self.maze.M-1:
-               bx = 0 
-               by = by + 1
- 
-class Maze:
-    def __init__(self):
-       self.M = 10
-       self.N = 9
-       self.start = 11
-       self.maze = [1,1,1,1,1,1,1,1,1,1,
-                    1,0,1,0,0,0,0,1,0,1,
-                    1,0,0,0,1,1,1,0,1,1,
-                    1,0,1,0,0,0,0,0,0,1,
-                    1,0,1,1,1,1,1,1,0,1,
-                    1,0,0,0,0,0,0,1,0,1,
-                    1,1,1,1,1,1,0,1,0,1,
-                    1,0,0,0,0,0,0,1,0,1,
-                    1,1,1,1,1,1,1,1,0,1]
-    #    self.maze = [ 1,1,1,1,1,1,1,1,1,1,
-    #                  1,0,0,0,0,0,0,0,0,1,
-    #                  1,0,0,0,0,0,0,0,0,1,
-    #                  1,0,1,1,1,1,1,1,0,1,
-    #                  1,0,1,0,0,0,0,0,0,1,
-    #                  1,0,1,0,1,1,1,1,0,1,
-    #                  1,0,0,0,0,0,0,0,0,1,
-    #                  1,1,1,1,1,1,1,1,1,1,]
 
-    def draw(self,display_surf,image_surf):
+    def draw(self,display_surf,image_surf, player):
        bx = 0
        by = 0
        for i in range(0,self.M*self.N):
-           if self.maze[ bx + (by*self.M) ] == 1:
-               display_surf.blit(image_surf,( bx * 29 , by * 30))
+            if self.maze[ bx + (by*self.M) ] == 1:
+               display_surf.blit(image_surf,( bx * 29 , by * 31))
+            if self.maze[ bx + (by*self.M) ] == 2:
+                display_surf.blit(player,( bx * 29 , by * 30))
+                self.x_pos = bx * 29
+                self.world_x_pos = -bx * 29
+                self.y_pos = by* 30
+                self.world_y_pos = -by* 30
       
-           bx = bx + 1
-           if bx > self.M-1:
-               bx = 0 
-               by = by + 1
+            bx = bx + 1
+            if bx > self.M-1:
+                bx = 0 
+                by = by + 1
 
 
 class App:
- 
-    windowWidth = 800
-    windowHeight = 600
-    player = 0
-    game_state = "start_menu"
- 
     def __init__(self):
+        self.windowWidth = 800
+        self.windowHeight = 600
+        self.game_state = "start_menu"
+        self.FPS =60
         self._running = True
         self._display_surf = None
+        self._screen = None
         self._image_surf = None
         self._block_surf = None
-        self.player = Player()
-        self.maze = Maze()
+        self.fullscreen = False
+        self.data = Data()
 
+    def on_init(self):
+        pygame.init()
+        pygame.mixer.init()
+        pygame.font.init()
+        self._screen = pygame.display.set_mode((self.windowWidth/2,self.windowHeight/2))
+        self.world = pygame.Surface((self.windowWidth,self.windowHeight)) # Create Map Surface
+        self.world.fill((0, 0, 0)) # Fill Map Surface Black
+        self._display_surf = pygame.display.set_mode((self.windowWidth,self.windowHeight), pygame.HWSURFACE)
+        self._max_display = pygame.display.Info().current_w, pygame.display.Info().current_h
+        self.scale = 3
+        self.fullscreen = False
+        self.clock = pygame.time.Clock()
+        pygame.display.set_caption('MAZERUNNER')
+        self._running = True
+        self._image_surf = pygame.image.load("images/player.png").convert()
+        self._image_surf.set_colorkey((0, 0, 0))
+        self._block_surf = pygame.image.load("images/block.png").convert()
+    
+    def on_render(self):
+        if self.game_state == "start_menu":
+            self.draw_start_menu()
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_SPACE]:
+                self.game_state = "game"
+
+        if self.game_state == "game":
+            self.data.changeMaze()
+            self.world.fill((0, 0, 0)) # Fill Map Surface Black
+            self._display_surf.fill((0, 0, 0)) # Fill Map Surface Black
+            self.data.draw(self.world, self._block_surf, self._image_surf)
+            self._display_surf.blit(self.world,(self.data.world_x_pos + self.windowWidth / 3 ,self.data.world_y_pos+ self.windowHeight / 3))
+            self._screen.blit(pygame.transform.scale(self._display_surf,(self.windowWidth,self.windowHeight)),(0,0))
+            pygame.display.flip()
+
+        if self.data.game_over == True:
+            self.game_state = "game_over"
+            self.draw_game_over_screen()
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_r]:
+                self.game_state = "start_menu"
+                self.data.game_over = False
+        
+        if self.data.game_Won == True:
+            self.game_state = "game_Won"
+            self.draw_game_Won_screen()
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_r]:
+                self.game_state = "start_menu"
+                self.data.game_Won = False
+    
     def draw_start_menu(self):
         self._display_surf.fill((0,0,0))
         font = pygame.font.SysFont('arial', 40)
@@ -141,51 +180,22 @@ class App:
         self._display_surf.blit(previous_level, ( 50, previous_level.get_height()/2))
         pygame.display.update()
 
-    def on_init(self):
-        pygame.init()
-        self._display_surf = pygame.display.set_mode((self.windowWidth,self.windowHeight), pygame.HWSURFACE)
-        
-        pygame.display.set_caption('MAZERUNNER')
-        self._running = True
-        self._image_surf = pygame.image.load("images/player.png").convert()
-        self._block_surf = pygame.image.load("images/block.png").convert()
- 
-    def on_event(self, event):
-        if event.type == QUIT:
-            self._running = False
- 
-    def on_loop(self):
-        pass
+    def set_display(self):
+        pygame.Surface(self.get_resolution())
+        if self.fullscreen:
+            pygame.Surface(self._max_display)
+            pygame.display.set_mode(self._max_display, pygame.FULLSCREEN)
+        else:
+            pygame.Surface((self.windowWidth,self.windowHeight))
+            pygame.display.set_mode((self.windowWidth,self.windowHeight))
+        return
     
-    def on_render(self):
-        if self.game_state == "start_menu":
-            self.draw_start_menu()
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_SPACE]:
-                self.game_state = "game"
-
-        if self.game_state == "game":
-            self._display_surf.fill((0,0,0))
-            self.player.changeMaze()
-            self.player.draw_player(self._display_surf, self._image_surf)
-            self.maze.draw(self._display_surf, self._block_surf)
-            pygame.display.flip()
-
-        if self.player.game_over == True:
-            self.game_state = "game_over"
-            self.draw_game_over_screen()
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_r]:
-                self.game_state = "start_menu"
-                self.player.game_over = False
-        
-        if self.player.game_Won == True:
-            self.game_state = "game_Won"
-            self.draw_game_Won_screen()
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_r]:
-                self.game_state = "start_menu"
-                self.player.game_Won = False
+    
+    def get_resolution(self):
+        if self.fullscreen:
+            return self._max_display[0] * self.scale, self._max_display[1] * self.scale
+        else:
+            return self.windowWidth * self.scale, self.windowHeight * self.scale
  
     def on_cleanup(self):
         pygame.quit()
@@ -197,23 +207,32 @@ class App:
         while( self._running ):
             pygame.event.pump()
             keys = pygame.key.get_pressed()
-            
-            if (keys[K_RIGHT] or keys[K_d]):
-                self.player.moveRight()
- 
-            elif (keys[K_LEFT]or keys[K_a]):
-                self.player.moveLeft()
- 
-            elif (keys[K_UP]or keys[K_w]):
-                self.player.moveUp()
- 
-            elif (keys[K_DOWN]or keys[K_s]):
-                self.player.moveDown()
+
+            if self.game_state == "game":
+                if (keys[K_RIGHT] or keys[K_d]):
+                    self.data.moveRight()
+    
+                elif (keys[K_LEFT]or keys[K_a]):
+                    self.data.moveLeft()
+    
+                elif (keys[K_UP]or keys[K_w]):
+                    self.data.moveUp()
+    
+                elif (keys[K_DOWN]or keys[K_s]):
+                    self.data.moveDown()
  
             if (keys[K_ESCAPE]):
                 self._running = False
+
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    self._running = False
+            
+            if (keys[K_f]):
+                self.fullscreen = not self.fullscreen
+                self.set_display()
  
-            self.on_loop()
+            self.clock.tick(self.FPS)
             self.on_render()
             time.sleep(0.1)
         self.on_cleanup()
