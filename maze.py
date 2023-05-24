@@ -7,20 +7,30 @@ class Data:
         self.game_over = False
         self.game_Won = False
         self.start = 11
+        self.level = 0
         self.pos = self.start
         self.old_pos = 0
         self.move_counter =0
         self.M = 10
         self.N = 9
-        self.maze = [1,1,1,1,1,1,1,1,1,1,
+        self.maze =[[   1,1,1,1,1,1,1,1,1,1,
                         1,0,1,0,0,0,0,1,0,1,
-                        1,0,0,0,1,1,1,0,1,1,
+                        1,0,6,0,1,1,1,0,1,1,
                         1,0,1,0,0,0,0,0,0,1,
                         1,0,1,1,1,1,1,1,0,1,
                         1,0,0,0,0,0,0,1,0,1,
                         1,1,1,1,1,1,0,1,0,1,
-                        1,0,0,0,0,0,0,1,0,1,
-                        1,1,1,1,1,1,1,1,0,1]
+                        1,5,0,0,0,0,0,1,0,1,
+                        1,1,1,1,1,1,1,1,0,1],
+                        [1,1,1,1,1,1,1,1,1,1,
+                        1,0,0,0,0,0,0,0,0,1,
+                        1,0,0,0,0,0,0,0,0,1,
+                        1,0,1,1,1,1,1,1,0,1,
+                        1,0,1,0,0,0,0,0,0,1,
+                        1,0,1,0,1,1,1,1,0,1,
+                        1,0,0,0,0,0,0,0,0,1,
+                        1,1,1,1,1,1,0,1,0,1,
+                        1,1,1,1,1,1,1,1,0,1]]
         #    self.maze = [ 1,1,1,1,1,1,1,1,1,1,
         #                  1,0,0,0,0,0,0,0,0,1,
         #                  1,0,0,0,0,0,0,0,0,1,
@@ -52,28 +62,34 @@ class Data:
 
     def changeMaze(self):
         try:
-            if self.maze[self.pos] == 1:
+            print(self.maze[self.level])
+            if self.maze[self.level][self.pos] == 1 or self.maze[self.level][self.pos] == 5:
                 self.pos = self.old_pos
             elif self.move_counter >0:
-                self.maze[self.old_pos] = 0
-            self.maze[self.pos] = 2
+                self.maze[self.level][self.old_pos] = 0
+            self.maze[self.level][self.pos] = 2 
         except IndexError:
-            self.maze[self.old_pos] = 0
+            self.maze[self.level][self.old_pos] = 0
             self.pos = self.start
             self.game_Won = True
 
-    def draw(self,display_surf,image_surf, player):
+    def draw(self,display_surf,image_surf, player, trap, fake_wall):
        bx = 0
        by = 0
        for i in range(0,self.M*self.N):
-            if self.maze[ bx + (by*self.M) ] == 1:
-               display_surf.blit(image_surf,( bx * 29 , by * 31))
-            if self.maze[ bx + (by*self.M) ] == 2:
-                display_surf.blit(player,( bx * 29 , by * 30))
-                self.x_pos = bx * 29
-                self.world_x_pos = -bx * 29
-                self.y_pos = by* 30
-                self.world_y_pos = -by* 30
+            if self.maze[self.level][ bx + (by*self.M) ] == 1:
+                display_surf.blit(image_surf,( bx * 100 , by * 100))
+            if self.maze[self.level][ bx + (by*self.M) ] == 2:
+                display_surf.blit(player,( bx * 100 , by * 100))
+                self.x_pos = bx * 100
+                self.world_x_pos = -bx * 100
+                self.y_pos = by* 100
+                self.world_y_pos = -by* 100
+            if self.maze[self.level][ bx + (by*self.M) ] == 5:
+                display_surf.blit(trap,( bx * 100 , by * 100))
+            if self.maze[self.level][ bx + (by*self.M) ] == 6:
+                display_surf.blit(fake_wall,( bx * 100 , by * 100))
+            
       
             bx = bx + 1
             if bx > self.M-1:
@@ -83,8 +99,8 @@ class Data:
 
 class App:
     def __init__(self):
-        self.windowWidth = 800
-        self.windowHeight = 600
+        self.windowWidth = 1200
+        self.windowHeight = 1000
         self.game_state = "start_menu"
         self.FPS =60
         self._running = True
@@ -111,7 +127,9 @@ class App:
         self._running = True
         self._image_surf = pygame.image.load("images/player.png").convert()
         self._image_surf.set_colorkey((0, 0, 0))
-        self._block_surf = pygame.image.load("images/block.png").convert()
+        self._block_surf = pygame.image.load("images/block_mooier.png").convert()
+        self._trap_surf = pygame.image.load("images/trap.png").convert()
+        self._fake_wall_surf = pygame.image.load("images/fake_wall.png").convert()
     
     def on_render(self):
         if self.game_state == "start_menu":
@@ -124,7 +142,7 @@ class App:
             self.data.changeMaze()
             self.world.fill((0, 0, 0)) # Fill Map Surface Black
             self._display_surf.fill((0, 0, 0)) # Fill Map Surface Black
-            self.data.draw(self.world, self._block_surf, self._image_surf)
+            self.data.draw(self.world, self._block_surf, self._image_surf, self._trap_surf, self._fake_wall_surf)
             self._display_surf.blit(self.world,(self.data.world_x_pos + self.windowWidth / 3 ,self.data.world_y_pos+ self.windowHeight / 3))
             self._screen.blit(pygame.transform.scale(self._display_surf,(self.windowWidth,self.windowHeight)),(0,0))
             pygame.display.flip()
@@ -133,17 +151,36 @@ class App:
             self.game_state = "game_over"
             self.draw_game_over_screen()
             keys = pygame.key.get_pressed()
+            print(self.data.level)
             if keys[pygame.K_r]:
-                self.game_state = "start_menu"
+                self.game_state = "game"
                 self.data.game_over = False
+            if keys[K_LEFT]:
+                if self.data.level >= 1:
+                    self.data.level -=1
+                    self.game_state = "game"
+                    self.data.game_Won = False
         
         if self.data.game_Won == True:
             self.game_state = "game_Won"
             self.draw_game_Won_screen()
             keys = pygame.key.get_pressed()
             if keys[pygame.K_r]:
-                self.game_state = "start_menu"
+                self.game_state = "game"
                 self.data.game_Won = False
+            if keys[K_RIGHT]:
+                if self.data.level <1:
+                    print(self.data.level)
+                    self.data.level +=1
+                    self.game_state = "game"
+                    self.data.move_counter =0
+                    self.data.game_Won = False
+            if keys[K_LEFT]:
+                if self.data.level >= 1:
+                    self.data.level -=1
+                    self.game_state = "game"
+                    self.data.move_counter =0
+                    self.data.game_Won = False
     
     def draw_start_menu(self):
         self._display_surf.fill((0,0,0))
@@ -160,9 +197,11 @@ class App:
         title = font.render('Game Over', True, (255, 255, 255))
         restart_button = font.render('R - Restart', True, (255, 255, 255))
         quit_button = font.render('ESC - Quit', True, (255, 255, 255))
+        previous_level = font.render('< - previous', True, (255, 255, 255))
         self._display_surf.blit(title, (self.windowWidth/2 - title.get_width()/2, self.windowHeight/2 - title.get_height()/3))
         self._display_surf.blit(restart_button, (self.windowWidth/2 - restart_button.get_width()/2, self.windowHeight/1.9 + restart_button.get_height()))
         self._display_surf.blit(quit_button, (self.windowWidth/2 - quit_button.get_width()/2, self.windowHeight/2 + quit_button.get_height()/2))
+        self._display_surf.blit(previous_level, ( 50, previous_level.get_height()/2))
         pygame.display.update()
 
     def draw_game_Won_screen(self):
