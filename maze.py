@@ -1,6 +1,7 @@
 from pygame.locals import *
 import pygame
 import time
+import os
  
 class Data:
     def __init__(self):
@@ -115,6 +116,7 @@ class App:
         pygame.init()
         pygame.mixer.init()
         pygame.font.init()
+        os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (350,30)
         self._screen = pygame.display.set_mode((self.windowWidth/2,self.windowHeight/2))
         self.world = pygame.Surface((self.windowWidth,self.windowHeight)) # Create Map Surface
         self.world.fill((0, 0, 0)) # Fill Map Surface Black
