@@ -2,9 +2,12 @@ from pygame.locals import *
 import pygame
 import time
 import os
+import json
  
 class Data:
     def __init__(self):
+        with open('data.json', 'r') as openfile:
+            self.maze = json.load(openfile)
         self.game_over = False
         self.game_Won = False
         self.start = 11
@@ -14,32 +17,6 @@ class Data:
         self.move_counter =0
         self.M = 10
         self.N = 9
-        self.maze =[[   1,1,1,1,1,1,1,1,1,1,
-                        1,0,1,0,0,0,0,1,0,1,
-                        1,0,6,0,1,1,1,0,1,1,
-                        1,0,1,0,0,0,0,0,0,1,
-                        1,0,1,1,1,1,1,1,0,1,
-                        1,0,0,0,0,0,0,1,0,1,
-                        1,1,1,1,1,1,0,1,0,1,
-                        1,5,0,0,0,0,0,1,0,1,
-                        1,1,1,1,1,1,1,1,0,1],
-                        [1,1,1,1,1,1,1,1,1,1,
-                        1,0,0,0,0,0,0,0,0,1,
-                        1,0,0,0,0,0,0,0,0,1,
-                        1,0,1,1,1,1,1,1,0,1,
-                        1,0,1,0,0,0,0,0,0,1,
-                        1,0,1,0,1,1,1,1,0,1,
-                        1,0,0,0,0,0,0,0,0,1,
-                        1,1,1,1,1,1,0,1,0,1,
-                        1,1,1,1,1,1,1,1,0,1]]
-        #    self.maze = [ 1,1,1,1,1,1,1,1,1,1,
-        #                  1,0,0,0,0,0,0,0,0,1,
-        #                  1,0,0,0,0,0,0,0,0,1,
-        #                  1,0,1,1,1,1,1,1,0,1,
-        #                  1,0,1,0,0,0,0,0,0,1,
-        #                  1,0,1,0,1,1,1,1,0,1,
-        #                  1,0,0,0,0,0,0,0,0,1,
-        #                  1,1,1,1,1,1,1,1,1,1,]
 
     def moveRight(self):
         self.old_pos = self.pos
@@ -74,10 +51,12 @@ class Data:
             self.pos = self.start
             self.game_Won = True
 
-    def draw(self,display_surf,image_surf, player, trap, fake_wall):
+    def draw(self,display_surf,image_surf, player, trap, fake_wall,floor):
        bx = 0
        by = 0
        for i in range(0,self.M*self.N):
+            if self.maze[self.level][ bx + (by*self.M) ] == 0 or 2:
+                display_surf.blit(floor,( bx * 100 , by * 100))
             if self.maze[self.level][ bx + (by*self.M) ] == 1:
                 display_surf.blit(image_surf,( bx * 100 , by * 100))
             if self.maze[self.level][ bx + (by*self.M) ] == 2:
@@ -96,6 +75,37 @@ class Data:
             if bx > self.M-1:
                 bx = 0 
                 by = by + 1
+                
+
+class Button():
+	def __init__(self, image, pos, text_input, font, base_color, hovering_color):
+		self.image = image
+		self.x_pos = pos[0]
+		self.y_pos = pos[1]
+		self.font = font
+		self.base_color, self.hovering_color = base_color, hovering_color
+		self.text_input = text_input
+		self.text = self.font.render(self.text_input, True, self.base_color)
+		if self.image is None:
+			self.image = self.text
+		self.rect = self.image.get_rect(center=(self.x_pos, self.y_pos))
+		self.text_rect = self.text.get_rect(center=(self.x_pos, self.y_pos))
+
+	def update(self, screen):
+		if self.image is not None:
+			screen.blit(self.image, self.rect)
+		screen.blit(self.text, self.text_rect)
+
+	def checkForInput(self, position):
+		if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
+			return True
+		return False
+
+	def changeColor(self, position):
+		if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
+			self.text = self.font.render(self.text_input, True, self.hovering_color)
+		else:
+			self.text = self.font.render(self.text_input, True, self.base_color)
 
 
 class App:
@@ -110,6 +120,7 @@ class App:
         self._image_surf = None
         self._block_surf = None
         self.fullscreen = False
+        self.toggle_interval = 0.045
         self.data = Data()
 
     def on_init(self):
@@ -129,9 +140,11 @@ class App:
         self._running = True
         self._image_surf = pygame.image.load("images/player.png").convert()
         self._image_surf.set_colorkey((0, 0, 0))
-        self._block_surf = pygame.image.load("images/block_mooier.png").convert()
+        self._block_surf = pygame.image.load("images/block.png").convert()
+        self._floor_surf = pygame.image.load("images/floor.png").convert()
         self._trap_surf = pygame.image.load("images/trap.png").convert()
         self._fake_wall_surf = pygame.image.load("images/fake_wall.png").convert()
+        self.background = pygame.image.load("images/background.png")
     
     def on_render(self):
         if self.game_state == "start_menu":
@@ -144,7 +157,7 @@ class App:
             self.data.changeMaze()
             self.world.fill((0, 0, 0)) # Fill Map Surface Black
             self._display_surf.fill((0, 0, 0)) # Fill Map Surface Black
-            self.data.draw(self.world, self._block_surf, self._image_surf, self._trap_surf, self._fake_wall_surf)
+            self.data.draw(self.world, self._block_surf, self._image_surf, self._trap_surf, self._fake_wall_surf, self._floor_surf)
             self._display_surf.blit(self.world,(self.data.world_x_pos + self.windowWidth / 3 ,self.data.world_y_pos+ self.windowHeight / 3))
             self._screen.blit(pygame.transform.scale(self._display_surf,(self.windowWidth,self.windowHeight)),(0,0))
             pygame.display.flip()
@@ -166,31 +179,35 @@ class App:
         if self.data.game_Won == True:
             self.game_state = "game_Won"
             self.draw_game_Won_screen()
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_r]:
-                self.game_state = "game"
-                self.data.game_Won = False
-            if keys[K_RIGHT]:
-                if self.data.level <1:
-                    print(self.data.level)
-                    self.data.level +=1
-                    self.game_state = "game"
-                    self.data.move_counter =0
-                    self.data.game_Won = False
-            if keys[K_LEFT]:
-                if self.data.level >= 1:
-                    self.data.level -=1
-                    self.game_state = "game"
-                    self.data.move_counter =0
-                    self.data.game_Won = False
-    
+
     def draw_start_menu(self):
-        self._display_surf.fill((0,0,0))
-        font = pygame.font.SysFont('arial', 40)
-        title = font.render('My Game', True, (255, 255, 255))
-        start_button = font.render('Start', True, (255, 255, 255))
-        self._display_surf.blit(title, (self.windowWidth/2 - title.get_width()/2, self.windowHeight/2 - title.get_height()/2))
-        self._display_surf.blit(start_button, (self.windowWidth/2 - start_button.get_width()/2, self.windowHeight/2 + start_button.get_height()/2))
+        self._display_surf.blit(self.background, (0, 0))
+
+        MENU_MOUSE_POS = pygame.mouse.get_pos()
+
+        MENU_TEXT = pygame.font.Font("font.ttf", 100).render("MAIN MENU", True, "#b68f40")
+        MENU_RECT = MENU_TEXT.get_rect(center=(self.windowWidth/2, 100))
+
+        PLAY_BUTTON = Button(image=pygame.image.load("images/Play Rect.png"), pos=(self.windowWidth/2, 250), 
+                            text_input="PLAY", font=pygame.font.Font("font.ttf", 75), base_color="#d7fcd4", hovering_color="White")
+        QUIT_BUTTON = Button(image=pygame.image.load("images/Quit Rect.png"), pos=(self.windowWidth/2, 550), 
+                            text_input="QUIT", font=pygame.font.Font("font.ttf", 75), base_color="#d7fcd4", hovering_color="White")
+
+        self._display_surf.blit(MENU_TEXT, MENU_RECT)
+
+        for button in [PLAY_BUTTON, QUIT_BUTTON]:
+            button.changeColor(MENU_MOUSE_POS)
+            button.update(self._display_surf)
+        
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                self._running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    self.game_state = "game"
+                if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    self._running = False
+
         pygame.display.update()
  
     def draw_game_over_screen(self):
@@ -206,19 +223,55 @@ class App:
         self._display_surf.blit(previous_level, ( 50, previous_level.get_height()/2))
         pygame.display.update()
 
+
+
+
     def draw_game_Won_screen(self):
-        self._display_surf.fill((0, 0, 0))
-        font = pygame.font.SysFont('arial', 40)
-        title = font.render('Game Won', True, (255, 255, 255))
-        restart_button = font.render('R - Restart', True, (255, 255, 255))
-        quit_button = font.render('ESC - Quit', True, (255, 255, 255))
-        next_level = font.render('> - next', True, (255, 255, 255))
-        previous_level = font.render('< - previous', True, (255, 255, 255))
-        self._display_surf.blit(title, (self.windowWidth/2 - title.get_width()/2, self.windowHeight/2 - title.get_height()/3))
-        self._display_surf.blit(restart_button, (self.windowWidth/2 - restart_button.get_width()/2, self.windowHeight/1.9 + restart_button.get_height()))
-        self._display_surf.blit(quit_button, (self.windowWidth/2 - quit_button.get_width()/2, self.windowHeight/2 + quit_button.get_height()/2))
-        self._display_surf.blit(next_level, (self.windowWidth  - next_level.get_width() * 1.5, self.windowHeight * 0 + next_level.get_height()/2))
-        self._display_surf.blit(previous_level, ( 50, previous_level.get_height()/2))
+        self._display_surf.blit(self.background, (0, 0))
+
+        MENU_MOUSE_POS = pygame.mouse.get_pos()
+
+        MENU_TEXT = pygame.font.Font("font.ttf", 100).render("MAIN MENU", True, "#b68f40")
+        MENU_RECT = MENU_TEXT.get_rect(center=(self.windowWidth/2, 100))
+
+        PLAY_BUTTON = Button(image=pygame.image.load("images/Retry Rect.png"), pos=(self.windowWidth/2, 250), 
+                            text_input="RETRY", font=pygame.font.Font("font.ttf", 75), base_color="#d7fcd4", hovering_color="White")
+        QUIT_BUTTON = Button(image=pygame.image.load("images/Quit Rect.png"), pos=(self.windowWidth/2, 550), 
+                            text_input="QUIT", font=pygame.font.Font("font.ttf", 75), base_color="#d7fcd4", hovering_color="White")
+        NEXT_BUTTON = Button(image=pygame.image.load("images/Next Rect.png"), pos=(self.windowWidth - self.windowWidth/4, 750), 
+                            text_input="NEXT", font=pygame.font.Font("font.ttf", 75), base_color="#d7fcd4", hovering_color="White")
+        PREV_BUTTON = Button(image=pygame.image.load("images/Prev Rect.png"), pos=(self.windowWidth/4, 750), 
+                            text_input="PREV", font=pygame.font.Font("font.ttf", 75), base_color="#d7fcd4", hovering_color="White")
+
+        self._display_surf.blit(MENU_TEXT, MENU_RECT)
+
+        for button in [PLAY_BUTTON, QUIT_BUTTON,NEXT_BUTTON,PREV_BUTTON]:
+            button.changeColor(MENU_MOUSE_POS)
+            button.update(self._display_surf)
+        
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                self._running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    self.game_state = "game"
+                    self.data.game_Won = False
+                if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    self._running = False
+                if NEXT_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    if self.data.level <(len(self.data.maze) -1):
+                        self.data.level +=1
+                        self.game_state = "game"
+                        self.data.move_counter =0
+                        self.data.game_Won = False
+                if PREV_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    if self.data.level >= 1:
+                        self.data.level -=1
+                        self.game_state = "game"
+                        self.data.move_counter =0
+                        self.data.game_Won = False
+
+
         pygame.display.update()
 
     def set_display(self):
@@ -248,6 +301,7 @@ class App:
         while( self._running ):
             pygame.event.pump()
             keys = pygame.key.get_pressed()
+            self.start_time = time.time()
 
             if self.game_state == "game":
                 if (keys[K_RIGHT] or keys[K_d]):
@@ -261,7 +315,13 @@ class App:
     
                 elif (keys[K_DOWN]or keys[K_s]):
                     self.data.moveDown()
- 
+            
+                # Wait until the desired interval is reached
+                while time.time() - self.start_time < self.toggle_interval:
+                    pass
+    
+                while time.time() - self.start_time < 2 * self.toggle_interval:
+                    self.passtoggle_interval = 0.045
             if (keys[K_ESCAPE]):
                 self._running = False
 
@@ -275,7 +335,6 @@ class App:
  
             self.clock.tick(self.FPS)
             self.on_render()
-            time.sleep(0.1)
         self.on_cleanup()
  
 if __name__ == "__main__" :
