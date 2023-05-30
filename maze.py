@@ -8,7 +8,6 @@ class Data:
     def __init__(self):
         with open('data.json', 'r') as openfile:
             self.maze = json.load(openfile)
-        self.game_over = False
         self.game_Won = False
         self.start = 11
         self.level = 0
@@ -149,9 +148,6 @@ class App:
     def on_render(self):
         if self.game_state == "start_menu":
             self.draw_start_menu()
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_SPACE]:
-                self.game_state = "game"
 
         if self.game_state == "game":
             self.data.changeMaze()
@@ -162,20 +158,6 @@ class App:
             self._screen.blit(pygame.transform.scale(self._display_surf,(self.windowWidth,self.windowHeight)),(0,0))
             pygame.display.flip()
 
-        if self.data.game_over == True:
-            self.game_state = "game_over"
-            self.draw_game_over_screen()
-            keys = pygame.key.get_pressed()
-            print(self.data.level)
-            if keys[pygame.K_r]:
-                self.game_state = "game"
-                self.data.game_over = False
-            if keys[K_LEFT]:
-                if self.data.level >= 1:
-                    self.data.level -=1
-                    self.game_state = "game"
-                    self.data.game_Won = False
-        
         if self.data.game_Won == True:
             self.game_state = "game_Won"
             self.draw_game_Won_screen()
@@ -209,22 +191,6 @@ class App:
                     self._running = False
 
         pygame.display.update()
- 
-    def draw_game_over_screen(self):
-        self._display_surf.fill((0, 0, 0))
-        font = pygame.font.SysFont('arial', 40)
-        title = font.render('Game Over', True, (255, 255, 255))
-        restart_button = font.render('R - Restart', True, (255, 255, 255))
-        quit_button = font.render('ESC - Quit', True, (255, 255, 255))
-        previous_level = font.render('< - previous', True, (255, 255, 255))
-        self._display_surf.blit(title, (self.windowWidth/2 - title.get_width()/2, self.windowHeight/2 - title.get_height()/3))
-        self._display_surf.blit(restart_button, (self.windowWidth/2 - restart_button.get_width()/2, self.windowHeight/1.9 + restart_button.get_height()))
-        self._display_surf.blit(quit_button, (self.windowWidth/2 - quit_button.get_width()/2, self.windowHeight/2 + quit_button.get_height()/2))
-        self._display_surf.blit(previous_level, ( 50, previous_level.get_height()/2))
-        pygame.display.update()
-
-
-
 
     def draw_game_Won_screen(self):
         self._display_surf.blit(self.background, (0, 0))
@@ -238,14 +204,16 @@ class App:
                             text_input="RETRY", font=pygame.font.Font("font.ttf", 75), base_color="#d7fcd4", hovering_color="White")
         QUIT_BUTTON = Button(image=pygame.image.load("images/Quit Rect.png"), pos=(self.windowWidth/2, 550), 
                             text_input="QUIT", font=pygame.font.Font("font.ttf", 75), base_color="#d7fcd4", hovering_color="White")
+        HOME_BUTTON = Button(image=pygame.image.load("images/Home Rect.png"), pos=(self.windowWidth/2, 400), 
+                            text_input="HOME", font=pygame.font.Font("font.ttf", 75), base_color="#d7fcd4", hovering_color="White")
         NEXT_BUTTON = Button(image=pygame.image.load("images/Next Rect.png"), pos=(self.windowWidth - self.windowWidth/4, 750), 
                             text_input="NEXT", font=pygame.font.Font("font.ttf", 75), base_color="#d7fcd4", hovering_color="White")
         PREV_BUTTON = Button(image=pygame.image.load("images/Prev Rect.png"), pos=(self.windowWidth/4, 750), 
                             text_input="PREV", font=pygame.font.Font("font.ttf", 75), base_color="#d7fcd4", hovering_color="White")
-
+        
         self._display_surf.blit(MENU_TEXT, MENU_RECT)
 
-        for button in [PLAY_BUTTON, QUIT_BUTTON,NEXT_BUTTON,PREV_BUTTON]:
+        for button in [PLAY_BUTTON, QUIT_BUTTON,HOME_BUTTON,NEXT_BUTTON,PREV_BUTTON]:
             button.changeColor(MENU_MOUSE_POS)
             button.update(self._display_surf)
         
@@ -258,6 +226,9 @@ class App:
                     self.data.game_Won = False
                 if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
                     self._running = False
+                if HOME_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    self.game_state = "start_menu"
+                    self.data.game_Won = False
                 if NEXT_BUTTON.checkForInput(MENU_MOUSE_POS):
                     if self.data.level <(len(self.data.maze) -1):
                         self.data.level +=1
@@ -316,12 +287,12 @@ class App:
                 elif (keys[K_DOWN]or keys[K_s]):
                     self.data.moveDown()
             
-                # Wait until the desired interval is reached
                 while time.time() - self.start_time < self.toggle_interval:
                     pass
     
                 while time.time() - self.start_time < 2 * self.toggle_interval:
                     self.passtoggle_interval = 0.045
+
             if (keys[K_ESCAPE]):
                 self._running = False
 
